@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<canvas id="myCanvas" width="800" height="800" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+<script>
+  sample_time = 0;
+  wheel_speed = 440/8; // Hz
+  wheels = [
+    [1, 0.6, 15, 0.15],
+    [2, 0.5, 15, 0.25],
+    [4, 0.4, 15, 0.35],
+    [8, 0.3, 15, 0.45],
+    [16, 0.2, 15, 0.55],
+    [32, 0.1, 10, 0.65],
+  ];
+  samples_per_rotation = 44100/wheel_speed;
+  lastsample = 0;
+  samplecount = 0;
+
+  var canvas = document.getElementById("myCanvas");
+  var ctx = canvas.getContext("2d");
+  center = [canvas.width/2, canvas.height/2];
+  wheelradius = Math.min(...center);
+  console.log(wheelradius);
+  crossing_times_history = [];
+
+  const handleSuccess = function(stream) {
+    const context = new AudioContext();
+    const source = context.createMediaStreamSource(stream);
+    const processor = context.createScriptProcessor(1024, 1, 1);
+
+    source.connect(processor);
+    processor.connect(context.destination);
+
+    processor.onaudioprocess = function(e) {
+      crossing_times = [];
+      for(sample of e.inputBuffer.getChannelData(0)) {
+        if(lastsample<0 && sample>0) {
+          crossing_times.push([samplecount, sample_time/samples_per_rotation]);
+          samplecount ++;
+        }
+        lastsample = sample;
+        sample_time ++;
+        if(sample_time > samples_per_rotation)
+          sample_time -= samples_per_rotation;
+      }
+      crossing_times_history.push(crossing_times);
+      if(crossing_times_history.length>2) crossing_times_history.shift(0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(0,0,0,0)';
+      for(w of wheels) {
+        ctx.beginPath();
+        ctx.arc(center[0], center[1] ,wheelradius*w[3],0,2*Math.PI,false);
+        ctx.stroke();
+      }
+      for(h=0; h<crossing_times_history.length; h++) {
+        weight = (h+1)/crossing_times_history.length;
+        ctx.fillStyle = 'rgba(0,0,0,'+weight+')';
+        for(s of crossing_times_history[h]) {
+          for(w of wheels) {
+            mult = w[0], radius = w[1], size = w[2];
+            if(s[0] % mult==0) {
+              x = center[0] + wheelradius * radius * Math.sin(s[1] * 2*Math.PI);
+              y = center[1] + wheelradius * radius * Math.cos(s[1] * 2*Math.PI);
+              ctx.beginPath();
+              ctx.arc(x, y ,size,0,2*Math.PI,false);
+              ctx.fill();
+            }
+          }
+        }
+      }
+    };
+  };
+
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      .then(handleSuccess);
+</script>
+</body>
+</html>
