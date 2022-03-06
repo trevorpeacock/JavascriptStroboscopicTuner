@@ -9,6 +9,7 @@ Notes:
  * Currently only tunes to A=440
  * Performs noticeably better in Edge/Chromium/Chrome.
  * Uses a crude zero-crossing pitch detection (with averaging and frequency limiting). Could be improved.
+ * Doesn't work on mobile browsers
 
 To use:
  * Play an "A" on your instrument. As you get close, you will notice dots lining up on the semi-circular display.
