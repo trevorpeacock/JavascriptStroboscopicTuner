@@ -7,6 +7,8 @@ A javascript based stroboscopic instrument tuner
 Notes:
  * Uses your computer microphone. Disables echo cancellation and noise suppression (these tend to filter out tones)
  * Currently only tunes to A=440
+ * Performs noticeably better in Edge/Chromium/Chrome.
+ * Uses a crude zero-crossing pitch detection (with averaging and frequency limiting). Could be improved.
 
 To use:
  * Play an "A" on your instrument. As you get close, you will notice dots lining up on the semi-circular display.
