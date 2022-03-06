@@ -28,7 +28,7 @@ Your browser does not support the HTML5 canvas tag.</canvas>
       this.sample_no = (this.sample_no + 1) % this.len;
       const sum = this.samples.reduce((a, b) => a + b, 0);
       const avg = (sum / this.samples.length) || 0;
-      return v;
+      return avg;
     }
   }
 
@@ -45,7 +45,7 @@ Your browser does not support the HTML5 canvas tag.</canvas>
       this.armed=false;
       this.cycle_captured=true;
       this.crossing_times = [];
-      this.average_freq = new SampleAverager(50);
+      this.average_freq = new SampleAverager(220);
       this.last_average_freq = "";
     }
     arm() {
