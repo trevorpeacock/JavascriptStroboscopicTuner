@@ -2,7 +2,7 @@
 
 A javascript based stroboscopic instrument tuner
 
-[Run Demo](https://trevorpeacock.github.io/JavascriptStroboscopicTuner/strobe.html)
+[▶️ Run Demo](https://trevorpeacock.github.io/JavascriptStroboscopicTuner/strobe.html)
 
 Notes:
  * Uses your computer microphone. Disables echo cancellation and noise suppression (these tend to filter out tones)
