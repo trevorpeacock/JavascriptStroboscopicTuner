@@ -38,7 +38,6 @@ Your browser does not support the HTML5 canvas tag.</canvas>
       this.sample_time = 0;
       this.samples_since_last_crossing = 1;
       this.wheel_speed = 440/8; // Hz
-      this.samples_per_rotation = 44100.0/this.wheel_speed;
       this.cycle_max_volume = 0;
       this.samplecount = 0;
       this.cycle_sample = [];
@@ -47,6 +46,7 @@ Your browser does not support the HTML5 canvas tag.</canvas>
       this.crossing_times = [];
       this.average_freq = new SampleAverager(220);
       this.last_average_freq = "";
+      this.sampleRate(44100);
     }
     arm() {
       this.cycle_sample = [];
@@ -55,8 +55,12 @@ Your browser does not support the HTML5 canvas tag.</canvas>
       this.crossing_times = [];
       this.last_average_freq = "";
     }
+    sampleRate(rate) {
+      this.sample_rate = 1.0*rate;
+      this.samples_per_rotation = this.sample_rate/this.wheel_speed;
+    }
     sample(sample) {
-      var freq = 44100.0 / this.samples_since_last_crossing;
+      var freq = this.sample_rate / this.samples_since_last_crossing;
       if(this.lastsample<0 && sample>0 && this.cycle_max_volume>0.02) {
         this.last_average_freq = "";
         if(freq>55 && freq<440*8) {
@@ -214,6 +218,7 @@ Your browser does not support the HTML5 canvas tag.</canvas>
     processor.onaudioprocess = function(e) {
       performance.mark("Start Audio Processing");
       crossingDetector.arm();
+      crossingDetector.sampleRate(e.inputBuffer.sampleRate);
       for(var sample of e.inputBuffer.getChannelData(0)) {
         crossingDetector.sample(sampleAverager.sample(sample));
       }
@@ -228,9 +233,10 @@ Your browser does not support the HTML5 canvas tag.</canvas>
         ctx.fillText(crossingDetector.last_average_freq.toFixed(2)+"Hz", 10, 50);
       performance.mark("End Audio Processing");
       performance.measure("Time to do Audio Processing", "Start Audio Processing", "End Audio Processing");
-      var processing_time_sample = processing_time.sample(100*performance.getEntriesByType("measure")[0].duration / (1024.0/44100*1000));
+      var processing_time_sample = processing_time.sample(100*performance.getEntriesByType("measure")[0].duration / (1024.0/e.inputBuffer.sampleRate*1000));
       ctx.font = "10px Arial";
-      ctx.fillText(crossingHistory.histories+": "+processing_time_sample.toFixed(2)+"%", canvas.width-55, canvas.height-12);
+      ctx.fillText(crossingHistory.histories+": "+processing_time_sample.toFixed(2)+"%", canvas.width-55, canvas.height-24);
+      ctx.fillText("SampleRate: "+e.inputBuffer.sampleRate, canvas.width-100, canvas.height-12);
       if(processing_time_sample>50) {
         crossingHistory.reduce_histories();
         console.log("Reducing history")
